@@ -60,11 +60,13 @@ public class MainActivity extends AppCompatActivity {
     buttonCalculateRoots.setOnClickListener(v -> {
       Intent intentToOpenService = new Intent(MainActivity.this, CalculateRootsService.class);
       String userInputString = editTextUserInput.getText().toString();
-      // todo: check that `userInputString` is a number. handle bad input. convert `userInputString` to long
-      long userInputLong = 0; // todo this should be the converted string from the user
+      // todo: check that `userInputString` is a number. handle bad input
+      long userInputLong = Long.parseLong(userInputString);
       intentToOpenService.putExtra("number_for_service", userInputLong);
       startService(intentToOpenService);
-      // todo: set views states according to the spec (below)
+      buttonCalculateRoots.setEnabled(false);
+      editTextUserInput.setEnabled(false);
+      progressBar.setVisibility(View.VISIBLE);
     });
 
     // register a broadcast-receiver to handle action "found_roots"
