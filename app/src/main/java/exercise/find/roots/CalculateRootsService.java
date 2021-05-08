@@ -20,6 +20,24 @@ public class CalculateRootsService extends IntentService {
       Log.e("CalculateRootsService", "can't calculate roots for non-positive input" + numberToCalculateRootsFor);
       return;
     }
+
+    long root1 = numberToCalculateRootsFor;
+    long root2 = 1;
+    for(int i = 2; i < Math.sqrt(numberToCalculateRootsFor); i++) {
+      if (System.currentTimeMillis() - timeStartMs > 20000) {
+        Intent failedIntent = new Intent();
+        failedIntent.setAction("stopped_calculations");
+        failedIntent.putExtra("original_number", numberToCalculateRootsFor);
+        failedIntent.putExtra("time_until_give_up_seconds", 20);
+        this.sendBroadcast(failedIntent);
+      }
+      if (numberToCalculateRootsFor % i == 0) {
+        root1 = i;
+        root2 = numberToCalculateRootsFor / i;
+        break;
+      }
+    }
+
     /*
     TODO:
      calculate the roots.
