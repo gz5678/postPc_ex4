@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
   private BroadcastReceiver broadcastReceiverForSuccess = null;
+  private boolean processingIntent = false;
   // TODO: add any other fields to the activity as you want
 
 
@@ -43,7 +44,15 @@ public class MainActivity extends AppCompatActivity {
       public void afterTextChanged(Editable s) {
         // text did change
         String newText = editTextUserInput.getText().toString();
-        // todo: check conditions to decide if button should be enabled/disabled (see spec below)
+        try {
+          Long.parseLong(newText);
+          if (!processingIntent) {
+            buttonCalculateRoots.setEnabled(true);
+          }
+        }
+        catch (NumberFormatException e) {
+          // Empty catch
+        }
       }
     });
 
