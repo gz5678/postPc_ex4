@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
   private BroadcastReceiver broadcastReceiverForSuccess = null;
+  private BroadcastReceiver broadcastReceiverForFailure = null;
   private boolean processingIntent = false;
   // TODO: add any other fields to the activity as you want
 
@@ -88,12 +90,19 @@ public class MainActivity extends AppCompatActivity {
     };
     registerReceiver(broadcastReceiverForSuccess, new IntentFilter("found_roots"));
 
-    /*
-    todo:
-     add a broadcast-receiver to listen for abort-calculating as defined in the spec (below)
-     to show a Toast, use this code:
-     `Toast.makeText(this, "text goes here", Toast.LENGTH_SHORT).show()`
-     */
+    broadcastReceiverForFailure = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent incomingIntent) {
+        if (incomingIntent == null || !incomingIntent.getAction().equals("stopped_calculations")) return;
+        // got timeout on finding roots
+        progressBar.setVisibility(View.GONE);
+        editTextUserInput.setEnabled(true);
+        buttonCalculateRoots.setEnabled(true);
+        int timeUntilTimeout = (int) incomingIntent.getIntExtra("time_until_give_up_seconds", -1);
+        String msg = "calculation aborted after " + String.valueOf(timeUntilTimeout) + " seconds";
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+      }
+    };
   }
 
   @Override
