@@ -40,6 +40,7 @@ public class CalculateRootsService extends IntentService {
     Intent successIntent = new Intent();
     successIntent.setAction("found_roots");
     successIntent.putExtra("original_number", numberToCalculateRootsFor);
+    successIntent.putExtra("time_until_roots_found", (System.currentTimeMillis() - timeStartMs) / 1000 );
     successIntent.putExtra("root1", root1);
     successIntent.putExtra("root2", root2);
     this.sendBroadcast(successIntent);

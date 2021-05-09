@@ -75,13 +75,15 @@ public class MainActivity extends AppCompatActivity {
       public void onReceive(Context context, Intent incomingIntent) {
         if (incomingIntent == null || !incomingIntent.getAction().equals("found_roots")) return;
         // success finding roots!
-        /*
-         TODO: handle "roots-found" as defined in the spec (below).
-          also:
-           - the service found roots and passed them to you in the `incomingIntent`. extract them.
-           - when creating an intent to open the new-activity, pass the roots as extras to the new-activity intent
-             (see for example how did we pass an extra when starting the calculation-service)
-         */
+        progressBar.setVisibility(View.GONE);
+        editTextUserInput.setEnabled(true);
+        buttonCalculateRoots.setEnabled(true);
+        Intent intentForSuccess = new Intent(context, SuccessActivity.class);
+        intentForSuccess.putExtra("original_number", incomingIntent.getLongExtra("original_number", -1));
+        intentForSuccess.putExtra("root1", incomingIntent.getLongExtra("root1", -1));
+        intentForSuccess.putExtra("root2", incomingIntent.getLongExtra("root2", -1));
+        intentForSuccess.putExtra("time_of_calculation", incomingIntent.getLongExtra("time_until_roots_found", -1));
+        context.startActivity(intentForSuccess);
       }
     };
     registerReceiver(broadcastReceiverForSuccess, new IntentFilter("found_roots"));
