@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
   private BroadcastReceiver broadcastReceiverForSuccess = null;
   private BroadcastReceiver broadcastReceiverForFailure = null;
-  private boolean processingIntent = false;
+  private long startCalculationTime = System.currentTimeMillis();
   // TODO: add any other fields to the activity as you want
 
 
@@ -47,13 +47,12 @@ public class MainActivity extends AppCompatActivity {
         // text did change
         String newText = editTextUserInput.getText().toString();
         try {
-          Long.parseLong(newText);
-          if (!processingIntent) {
-            buttonCalculateRoots.setEnabled(true);
-          }
+          long num = Long.parseLong(newText);
+          if (num <= 0) throw new NumberFormatException();
+          buttonCalculateRoots.setEnabled(true);
         }
         catch (NumberFormatException e) {
-          // Empty catch
+          buttonCalculateRoots.setEnabled(false);
         }
       }
     });
@@ -62,10 +61,11 @@ public class MainActivity extends AppCompatActivity {
     buttonCalculateRoots.setOnClickListener(v -> {
       Intent intentToOpenService = new Intent(MainActivity.this, CalculateRootsService.class);
       String userInputString = editTextUserInput.getText().toString();
-      // todo: check that `userInputString` is a number. handle bad input
+      // No bad input can reach here since user is constrained to long positive integers.
       long userInputLong = Long.parseLong(userInputString);
       intentToOpenService.putExtra("number_for_service", userInputLong);
       startService(intentToOpenService);
+      startCalculationTime = System.currentTimeMillis();
       buttonCalculateRoots.setEnabled(false);
       editTextUserInput.setEnabled(false);
       progressBar.setVisibility(View.VISIBLE);
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         intentForSuccess.putExtra("original_number", incomingIntent.getLongExtra("original_number", -1));
         intentForSuccess.putExtra("root1", incomingIntent.getLongExtra("root1", -1));
         intentForSuccess.putExtra("root2", incomingIntent.getLongExtra("root2", -1));
-        intentForSuccess.putExtra("time_of_calculation", incomingIntent.getLongExtra("time_until_roots_found", -1));
+        intentForSuccess.putExtra("time_of_calculation", System.currentTimeMillis() - startCalculationTime);
         context.startActivity(intentForSuccess);
       }
     };
@@ -99,10 +99,11 @@ public class MainActivity extends AppCompatActivity {
         editTextUserInput.setEnabled(true);
         buttonCalculateRoots.setEnabled(true);
         int timeUntilTimeout = (int) incomingIntent.getIntExtra("time_until_give_up_seconds", -1);
-        String msg = "calculation aborted after " + String.valueOf(timeUntilTimeout) + " seconds";
+        String msg = "Calculation aborted after " + String.valueOf(timeUntilTimeout) + " seconds";
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
       }
     };
+    registerReceiver(broadcastReceiverForFailure, new IntentFilter("stopped_calculations"));
   }
 
   @Override
