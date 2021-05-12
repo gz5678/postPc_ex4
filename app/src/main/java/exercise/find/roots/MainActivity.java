@@ -21,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
   private BroadcastReceiver broadcastReceiverForSuccess = null;
   private BroadcastReceiver broadcastReceiverForFailure = null;
   private long startCalculationTime = System.currentTimeMillis();
-  // TODO: add any other fields to the activity as you want
 
 
   @Override
@@ -191,6 +190,4 @@ upon screen rotation (saveState && loadState) the new screen should show exactly
 * edit-text is disabled/enabled based on current "is waiting for calculation?" state
 * progress is showing/hidden based on current "is waiting for calculation?" state
 * button is enabled/disabled based on current "is waiting for calculation?" state && there is a valid number in the edit-text input
-
-
  */

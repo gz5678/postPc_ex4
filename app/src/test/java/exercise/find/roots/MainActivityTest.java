@@ -45,8 +45,8 @@ public class MainActivityTest extends TestCase {
     EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
     Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
 
-    // test: insert input to the edit text and verify that the button is enabled
-    // TODO: implement
+    inputEditText.setText("1234567");
+    assertTrue(button.isEnabled());
   }
 
   // TODO: add 1 or 2 more unit tests to the activity. so your "writing tests" skill won't get rusty.
