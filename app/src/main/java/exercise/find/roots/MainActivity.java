@@ -116,13 +116,34 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onSaveInstanceState(@NonNull Bundle outState) {
     super.onSaveInstanceState(outState);
-    // TODO: put relevant data into bundle as you see fit
+    EditText editTextUserInput = findViewById(R.id.editTextInputNumber);
+    Button buttonCalculateRoots = findViewById(R.id.buttonCalculateRoots);
+    ProgressBar progressBar = findViewById(R.id.progressBar);
+    outState.putString("number_in_text_field", editTextUserInput.getText().toString());
+    outState.putBoolean("is_button_on", buttonCalculateRoots.isEnabled());
+
+    boolean isCalculation = progressBar.getVisibility() != View.GONE;
+    outState.putBoolean("is_calculation", isCalculation);
   }
 
   @Override
   protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
     super.onRestoreInstanceState(savedInstanceState);
-    // TODO: load data from bundle and set screen state (see spec below)
+    EditText editTextUserInput = findViewById(R.id.editTextInputNumber);
+    Button buttonCalculateRoots = findViewById(R.id.buttonCalculateRoots);
+    ProgressBar progressBar = findViewById(R.id.progressBar);
+
+    editTextUserInput.setText(savedInstanceState.getString("number_in_text_field"));
+    if(savedInstanceState.getBoolean("is_calculation")) {
+      progressBar.setVisibility(View.VISIBLE);
+      buttonCalculateRoots.setEnabled(false);
+      editTextUserInput.setEnabled(false);
+    }
+    else {
+      progressBar.setVisibility(View.GONE);
+      buttonCalculateRoots.setEnabled(savedInstanceState.getBoolean("is_button_on"));
+      editTextUserInput.setEnabled(true);
+    }
   }
 }
 
