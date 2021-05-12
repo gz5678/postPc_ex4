@@ -1,5 +1,8 @@
 package exercise.find.roots;
 
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,6 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
@@ -52,6 +57,7 @@ public class MainActivityTest extends TestCase {
     assertTrue(button.isEnabled());
   }
 
+  @Test
   public void when_mainActivityLaunches_then_progressBarIsHidden() {
     // create a MainActivity and let it think it's currently displayed on the screen
     MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
@@ -61,6 +67,7 @@ public class MainActivityTest extends TestCase {
     assertEquals(progressBar.getVisibility(), View.GONE);
   }
 
+  @Test
   public void when_insertGoodNumber_and_clickButton_then_progressBarIsDisplayed() {
     // create a MainActivity and let it think it's currently displayed on the screen
     MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
@@ -78,24 +85,121 @@ public class MainActivityTest extends TestCase {
     assertEquals(progressBar.getVisibility(), View.VISIBLE);
   }
 
-  // TODO: add 1 or 2 more unit tests to the activity. so your "writing tests" skill won't get rusty.
-  //  possible flows to unit-test:
-  //  - when inserting a good number and clicking the button, "progress" should be displayed
-  //  - when user is entering a bad input (for example "17.3") the button should be disabled
-  //  - when user is entering a good input and than deleting it, the button should be enabled and then disabled again
-  //  - when user entered input and than activity recreates (user flipped the screen), the input in the new edit text is still there
-  //  - when starting a calculation the button should be locked (disabled)
-  //  - when starting a calculation and than activity receives "stopped_calculations" broadcast, the button should be unlocked (enabled)
-  //  - when starting a calculation and than activity receives "stopped_calculations" broadcast, "progress" should disappear
-  //
-  // to mock a click on the button:
-  //    call `button.performClick()`
-  //
-  // to mock inserting input to the edit-text:
-  //    call `editText.setText("input here")`
-  //
-  // to mock sending a broadcast:
-  //    create the broadcast intent (example: `new Intent("my_action_here")` ) and put extras
-  //    call `RuntimeEnvironment.application.sendBroadcast()` to send the broadcast
-  //    call `Shadows.shadowOf(Looper.getMainLooper()).idle();` to let the android OS time to process the broadcast the let your activity consume it
+  @Test
+  public void when_enterBadInput_then_buttonShouldBeDisabled() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    // find the edit-text and button
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
+
+    // enter bad input and check that button is disabled
+    inputEditText.setText("17.3");
+    assertFalse(button.isEnabled());
+  }
+
+  @Test
+  public void when_enterGoodInput_and_deletingIt_then_buttonShouldBeEnabledAndThenDisabled() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    // find the edit-text and button
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
+
+    // enter good input and check that button is enabled
+    inputEditText.setText("173");
+    assertTrue(button.isEnabled());
+
+    // enter bad input and check that button is disabled
+    inputEditText.setText("17.3");
+    assertFalse(button.isEnabled());
+  }
+
+  @Test
+  public void when_enterInput_and_flipScreen_then_inputShouldRemain() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    String inputNum = "173";
+
+    // find the edit-text and enter input
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    inputEditText.setText(inputNum);
+
+    // flip screen
+    mainActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+    // check input is the same
+    assertEquals(inputEditText.getText().toString(), inputNum);
+  }
+
+  @Test
+  public void when_startingCalculation_then_buttonShouldBeDisabled() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    // find the edit-text and button
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
+
+    // enter good input and press button
+    inputEditText.setText("2305843009213693951");
+    button.performClick();
+
+    // Check that button is disabled
+    assertFalse(button.isEnabled());
+  }
+
+  @Test
+  public void when_startingCalculation_and_receivingStoppedCalculation_then_buttonShouldBeEnabled() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    // find the edit-text and button
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
+
+    // enter good input and press button
+    inputEditText.setText("2305843009213693951");
+    button.performClick();
+
+    // Send stopped_calculation broadcast
+    Intent failedIntent = new Intent();
+    failedIntent.setAction("stopped_calculations");
+    failedIntent.putExtra("original_number", "2305843009213693951");
+    failedIntent.putExtra("time_until_give_up_seconds", 20);
+    RuntimeEnvironment.application.sendBroadcast(failedIntent);
+    Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+    // Check that button is enabled
+    assertTrue(button.isEnabled());
+  }
+
+  @Test
+  public void when_startingCalculation_and_receivingStoppedCalculation_then_progressBarShouldDisappear() {
+    // create a MainActivity and let it think it's currently displayed on the screen
+    MainActivity mainActivity = Robolectric.buildActivity(MainActivity.class).create().visible().get();
+
+    // find the edit-text, button and progress bar
+    EditText inputEditText = mainActivity.findViewById(R.id.editTextInputNumber);
+    Button button = mainActivity.findViewById(R.id.buttonCalculateRoots);
+    ProgressBar progressBar = mainActivity.findViewById(R.id.progressBar);
+
+    // enter good input and press button
+    inputEditText.setText("2305843009213693951");
+    button.performClick();
+
+    // Send stopped_calculation broadcast
+    Intent failedIntent = new Intent();
+    failedIntent.setAction("stopped_calculations");
+    failedIntent.putExtra("original_number", "2305843009213693951");
+    failedIntent.putExtra("time_until_give_up_seconds", 20);
+    RuntimeEnvironment.application.sendBroadcast(failedIntent);
+    Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+    // Check that progress bar is not visible
+    assertEquals(progressBar.getVisibility(), View.GONE);
+  }
 }
